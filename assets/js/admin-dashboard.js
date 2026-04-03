@@ -281,7 +281,7 @@ async function loadDailyProblems() {
 
 async function loadUsers() {
   try {
-    const response = await apiRequest("/admin/users");
+    const response = await apiRequest("/admin/users?limit=200&offset=0");
     userState = response.users || [];
     renderUsers();
 
@@ -306,7 +306,9 @@ async function loadUserDetails(userId) {
     selectedUserDetails.innerHTML = `<div class="empty-state">Loading user details...</div>`;
     selectedUserDetails.className = "history-list";
 
-    const response = await apiRequest(`/admin/users/${encodeURIComponent(selectedUserId)}`);
+    const response = await apiRequest(
+      `/admin/users/${encodeURIComponent(selectedUserId)}?notesLimit=120&historyLimit=200`
+    );
     const userData = response.user;
     const stats = response.stats || {};
     const notes = response.notes || [];

@@ -200,10 +200,11 @@ router.get("/today-problem", async (req, res, next) => {
     }
 
     const completionRows = await query(
-      `SELECT id
-       FROM user_completions
-       WHERE user_id = ? AND completion_date = UTC_DATE()
-       LIMIT 1`,
+      `SELECT EXISTS(
+          SELECT 1
+          FROM user_completions
+          WHERE user_id = ? AND completion_date = UTC_DATE()
+       ) AS completed_today`,
       [req.user.id]
     );
 
@@ -212,7 +213,7 @@ router.get("/today-problem", async (req, res, next) => {
         ...rows[0],
         problem_date: toISODate(rows[0].problem_date)
       },
-      completedToday: completionRows.length > 0
+      completedToday: Number(completionRows[0]?.completed_today || 0) === 1
     });
   } catch (error) {
     return next(error);
@@ -277,6 +278,7 @@ router.get(
          INNER JOIN daily_problems dp ON dp.id = uc.daily_problem_id
          INNER JOIN problems p ON p.id = dp.problem_id
          WHERE uc.user_id = ?
+           AND uc.completion_date <= UTC_DATE()
          ORDER BY uc.completion_date DESC
          LIMIT ?`,
         [req.user.id, limit]

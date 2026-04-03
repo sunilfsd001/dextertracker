@@ -38,20 +38,27 @@ const problemValidation = [
     .withMessage("Reference URL must be a valid URL.")
 ];
 
+function clampInteger(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, parsed));
+}
+
 router.get("/overview", async (req, res, next) => {
   try {
-    const [userCountRows, todayCompletionRows, topPerformers] = await Promise.all([
-      query(`SELECT COUNT(*) AS total_users FROM users WHERE role = 'user'`),
+    const [overviewRows, topPerformers] = await Promise.all([
       query(
-        `SELECT COUNT(*) AS today_completions
-         FROM user_completions
-         WHERE completion_date = UTC_DATE()`
+        `SELECT
+            (SELECT COUNT(*) FROM users WHERE role = 'user') AS total_users,
+            (SELECT COUNT(*) FROM user_completions WHERE completion_date = UTC_DATE()) AS today_completions`
       ),
       getLeaderboard(5)
     ]);
 
-    const totalUsers = Number(userCountRows[0]?.total_users || 0);
-    const todayCompletions = Number(todayCompletionRows[0]?.today_completions || 0);
+    const totalUsers = Number(overviewRows[0]?.total_users || 0);
+    const todayCompletions = Number(overviewRows[0]?.today_completions || 0);
     const todayCompletionRate = totalUsers === 0 ? 0 : Number(((todayCompletions / totalUsers) * 100).toFixed(2));
 
     return res.status(200).json({
@@ -79,25 +86,16 @@ router.get(
   async (req, res, next) => {
     try {
       const search = (req.query.search || "").trim();
-      let rows;
-
-      if (search) {
-        rows = await query(
-          `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
-           FROM problems p
-           INNER JOIN users u ON u.id = p.created_by
-           WHERE p.title LIKE ? OR p.topic LIKE ?
-           ORDER BY p.created_at DESC`,
-          [`%${search}%`, `%${search}%`]
-        );
-      } else {
-        rows = await query(
-          `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
-           FROM problems p
-           INNER JOIN users u ON u.id = p.created_by
-           ORDER BY p.created_at DESC`
-        );
-      }
+      const rows = await query(
+        `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
+         FROM problems p
+         INNER JOIN users u ON u.id = p.created_by
+         WHERE (? = '')
+            OR p.title LIKE CONCAT('%', ?, '%')
+            OR p.topic LIKE CONCAT('%', ?, '%')
+         ORDER BY p.created_at DESC`,
+        [search, search, search]
+      );
 
       return res.status(200).json({ problems: rows });
     } catch (error) {
@@ -316,7 +314,13 @@ router.put(
   async (req, res, next) => {
     try {
       const dailyProblemId = Number(req.params.dailyProblemId);
-      const existingRows = await query(`SELECT * FROM daily_problems WHERE id = ? LIMIT 1`, [dailyProblemId]);
+      const existingRows = await query(
+        `SELECT id, problem_date, problem_id
+         FROM daily_problems
+         WHERE id = ?
+         LIMIT 1`,
+        [dailyProblemId]
+      );
       if (existingRows.length === 0) {
         return res.status(404).json({ message: "Daily problem not found." });
       }
@@ -402,14 +406,21 @@ router.delete(
 
 router.get("/users", async (req, res, next) => {
   try {
+    const limit = clampInteger(req.query.limit, 100, 1, 500);
+    const offset = clampInteger(req.query.offset, 0, 0, 50000);
+
     const users = await query(
       `SELECT id, name, email, created_at
        FROM users
        WHERE role = 'user'
-       ORDER BY created_at DESC`
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    const statsByUser = await getUsersProgressStats(users.map((entry) => entry.id));
+    const statsByUser = await getUsersProgressStats(users.map((entry) => entry.id), {
+      includeCompletionRate: false
+    });
 
     const enrichedUsers = users.map((entry) => ({
       ...entry,
@@ -430,11 +441,23 @@ router.get("/users", async (req, res, next) => {
 
 router.get(
   "/users/:userId",
-  [param("userId").isInt({ min: 1 }).withMessage("Invalid user id.")],
+  [
+    param("userId").isInt({ min: 1 }).withMessage("Invalid user id."),
+    queryValidator("notesLimit")
+      .optional()
+      .isInt({ min: 1, max: 500 })
+      .withMessage("notesLimit must be between 1 and 500."),
+    queryValidator("historyLimit")
+      .optional()
+      .isInt({ min: 1, max: 500 })
+      .withMessage("historyLimit must be between 1 and 500.")
+  ],
   validate,
   async (req, res, next) => {
     try {
       const userId = Number(req.params.userId);
+      const notesLimit = clampInteger(req.query.notesLimit, 100, 1, 500);
+      const historyLimit = clampInteger(req.query.historyLimit, 100, 1, 500);
       const userRows = await query(
         `SELECT id, name, email, role, created_at
          FROM users
@@ -452,8 +475,9 @@ router.get(
           `SELECT id, title, content, created_at, updated_at
            FROM notes
            WHERE user_id = ?
-           ORDER BY updated_at DESC`,
-          [userId]
+           ORDER BY updated_at DESC
+           LIMIT ?`,
+          [userId, notesLimit]
         ),
         query(
           `SELECT uc.completion_date, p.title, p.difficulty, p.topic
@@ -461,8 +485,10 @@ router.get(
            INNER JOIN daily_problems dp ON dp.id = uc.daily_problem_id
            INNER JOIN problems p ON p.id = dp.problem_id
            WHERE uc.user_id = ?
-           ORDER BY uc.completion_date DESC`,
-          [userId]
+             AND uc.completion_date <= UTC_DATE()
+           ORDER BY uc.completion_date DESC
+           LIMIT ?`,
+          [userId, historyLimit]
         ),
         getUserProgressStats(userId)
       ]);
