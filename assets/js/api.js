@@ -41,8 +41,17 @@ function clearSession() {
 async function apiRequest(path, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
   const token = getToken();
+  const url = new URL(`${API_BASE_URL}${path}`);
+
+  // Prevent stale cached GET responses in admin/user dashboards.
+  if (method === "GET") {
+    url.searchParams.set("_ts", String(Date.now()));
+  }
+
   const headers = {
     "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
     ...(options.headers || {})
   };
 
@@ -50,9 +59,10 @@ async function apiRequest(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(url.toString(), {
     method,
     headers,
+    cache: "no-store",
     body: options.body ? JSON.stringify(options.body) : undefined
   });
 
