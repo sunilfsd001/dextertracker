@@ -50,6 +50,7 @@ let problemState = [];
 let dailyProblemState = [];
 let userState = [];
 let selectedUserId = "";
+let usersAutoRefreshTimer = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -569,6 +570,23 @@ function initialize() {
   });
   resetProblemForm();
   resetDailyForm();
+
+  usersAutoRefreshTimer = window.setInterval(() => {
+    loadUsers();
+  }, 15000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      loadUsers();
+    }
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (usersAutoRefreshTimer) {
+      window.clearInterval(usersAutoRefreshTimer);
+      usersAutoRefreshTimer = null;
+    }
+  });
 }
 
 initialize();

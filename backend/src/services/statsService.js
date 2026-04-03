@@ -94,6 +94,60 @@ async function getUserProgressStats(userId) {
   };
 }
 
+async function getUsersProgressStats(userIds = []) {
+  const ids = [...new Set(userIds.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const placeholders = ids.map(() => "?").join(", ");
+  const [completionRows, totalDailyRows] = await Promise.all([
+    query(
+      `SELECT user_id, completion_date
+       FROM user_completions
+       WHERE user_id IN (${placeholders})
+       ORDER BY user_id, completion_date DESC`,
+      ids
+    ),
+    query(
+      `SELECT COUNT(*) AS total_daily
+       FROM daily_problems
+       WHERE problem_date <= UTC_DATE()`
+    )
+  ]);
+
+  const byUser = completionRows.reduce((acc, row) => {
+    const userId = Number(row.user_id);
+    if (!acc.has(userId)) {
+      acc.set(userId, []);
+    }
+    acc.get(userId).push(toISODate(row.completion_date));
+    return acc;
+  }, new Map());
+
+  const totalDaily = Number(totalDailyRows[0]?.total_daily || 0);
+  const today = toISODate(new Date());
+  const statsByUser = new Map();
+
+  ids.forEach((userId) => {
+    const dates = (byUser.get(userId) || []).filter(Boolean).sort((a, b) => b.localeCompare(a));
+    const totalCompleted = dates.length;
+    const currentStreak = calculateCurrentStreak(dates, today);
+    const maxStreak = calculateMaxStreak(dates);
+    const completionRate = totalDaily === 0 ? 0 : Number(((totalCompleted / totalDaily) * 100).toFixed(2));
+
+    statsByUser.set(userId, {
+      totalCompleted,
+      currentStreak,
+      maxStreak,
+      completionRate,
+      lastCompletedDate: dates[0] || null
+    });
+  });
+
+  return statsByUser;
+}
+
 async function getLeaderboard(limit = 10) {
   const [users, completionRows] = await Promise.all([
     query(
@@ -209,6 +263,7 @@ async function getUserActivityTrends(days = 30) {
 
 module.exports = {
   getUserProgressStats,
+  getUsersProgressStats,
   getUserCompletionDates,
   getLeaderboard,
   getDailyCompletionRates,

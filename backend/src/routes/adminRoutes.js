@@ -5,6 +5,7 @@ const { authenticate, authorize } = require("../middleware/auth");
 const { validate } = require("../middleware/validate");
 const {
   getUserProgressStats,
+  getUsersProgressStats,
   getLeaderboard,
   getDailyCompletionRates,
   getUserActivityTrends
@@ -408,15 +409,18 @@ router.get("/users", async (req, res, next) => {
        ORDER BY created_at DESC`
     );
 
-    const enrichedUsers = await Promise.all(
-      users.map(async (user) => {
-        const stats = await getUserProgressStats(user.id);
-        return {
-          ...user,
-          stats
-        };
-      })
-    );
+    const statsByUser = await getUsersProgressStats(users.map((entry) => entry.id));
+
+    const enrichedUsers = users.map((entry) => ({
+      ...entry,
+      stats: statsByUser.get(entry.id) || {
+        totalCompleted: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        completionRate: 0,
+        lastCompletedDate: null
+      }
+    }));
 
     return res.status(200).json({ users: enrichedUsers });
   } catch (error) {
