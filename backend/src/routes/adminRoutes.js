@@ -86,16 +86,25 @@ router.get(
   async (req, res, next) => {
     try {
       const search = (req.query.search || "").trim();
-      const rows = await query(
-        `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
-         FROM problems p
-         INNER JOIN users u ON u.id = p.created_by
-         WHERE (? = '')
-            OR p.title LIKE CONCAT('%', ?, '%')
-            OR p.topic LIKE CONCAT('%', ?, '%')
-         ORDER BY p.created_at DESC`,
-        [search, search, search]
-      );
+      let rows;
+
+      if (!search) {
+        rows = await query(
+          `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
+           FROM problems p
+           INNER JOIN users u ON u.id = p.created_by
+           ORDER BY p.created_at DESC`
+        );
+      } else {
+        rows = await query(
+          `SELECT p.id, p.title, p.description, p.difficulty, p.topic, p.reference_url, p.created_at, u.name AS created_by
+           FROM problems p
+           INNER JOIN users u ON u.id = p.created_by
+           WHERE p.title LIKE ? OR p.topic LIKE ?
+           ORDER BY p.created_at DESC`,
+          [`%${search}%`, `%${search}%`]
+        );
+      }
 
       return res.status(200).json({ problems: rows });
     } catch (error) {
@@ -409,13 +418,13 @@ router.get("/users", async (req, res, next) => {
     const limit = clampInteger(req.query.limit, 100, 1, 500);
     const offset = clampInteger(req.query.offset, 0, 0, 50000);
 
+    // Use sanitized literals for LIMIT/OFFSET for maximum server compatibility.
     const users = await query(
       `SELECT id, name, email, created_at
        FROM users
        WHERE role = 'user'
        ORDER BY created_at DESC
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`
     );
 
     const statsByUser = await getUsersProgressStats(users.map((entry) => entry.id), {
@@ -476,8 +485,8 @@ router.get(
            FROM notes
            WHERE user_id = ?
            ORDER BY updated_at DESC
-           LIMIT ?`,
-          [userId, notesLimit]
+           LIMIT ${notesLimit}`,
+          [userId]
         ),
         query(
           `SELECT uc.completion_date, p.title, p.difficulty, p.topic
@@ -487,8 +496,8 @@ router.get(
            WHERE uc.user_id = ?
              AND uc.completion_date <= UTC_DATE()
            ORDER BY uc.completion_date DESC
-           LIMIT ?`,
-          [userId, historyLimit]
+           LIMIT ${historyLimit}`,
+          [userId]
         ),
         getUserProgressStats(userId)
       ]);

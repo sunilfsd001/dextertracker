@@ -217,6 +217,7 @@ async function getLeaderboard(limit = 10) {
 
 async function getDailyCompletionRates(days = 14) {
   const safeDays = clampInteger(days, 14, 1, 365);
+  const lookbackDays = Math.max(0, safeDays - 1);
 
   const [usersCountRows, dailyRows] = await Promise.all([
     query(`SELECT COUNT(*) AS total_users FROM users WHERE role = 'user'`),
@@ -224,10 +225,9 @@ async function getDailyCompletionRates(days = 14) {
       `SELECT dp.problem_date AS problem_date, COUNT(DISTINCT uc.user_id) AS completions
        FROM daily_problems dp
        LEFT JOIN user_completions uc ON uc.daily_problem_id = dp.id
-       WHERE dp.problem_date BETWEEN DATE_SUB(UTC_DATE(), INTERVAL ? DAY) AND UTC_DATE()
+       WHERE dp.problem_date BETWEEN DATE_SUB(UTC_DATE(), INTERVAL ${lookbackDays} DAY) AND UTC_DATE()
        GROUP BY dp.problem_date
-       ORDER BY dp.problem_date ASC`,
-      [safeDays - 1]
+       ORDER BY dp.problem_date ASC`
     )
   ]);
 
@@ -241,23 +241,22 @@ async function getDailyCompletionRates(days = 14) {
 
 async function getUserActivityTrends(days = 30) {
   const safeDays = clampInteger(days, 30, 1, 365);
+  const lookbackDays = Math.max(0, safeDays - 1);
 
   const [signupRows, completionRows] = await Promise.all([
     query(
       `SELECT DATE(created_at) AS date, COUNT(*) AS signups
        FROM users
-       WHERE role = 'user' AND created_at >= DATE_SUB(UTC_DATE(), INTERVAL ? DAY)
+       WHERE role = 'user' AND created_at >= DATE_SUB(UTC_DATE(), INTERVAL ${lookbackDays} DAY)
        GROUP BY DATE(created_at)
-       ORDER BY DATE(created_at) ASC`,
-      [safeDays - 1]
+       ORDER BY DATE(created_at) ASC`
     ),
     query(
       `SELECT completion_date AS date, COUNT(*) AS completions
        FROM user_completions
-       WHERE completion_date >= DATE_SUB(UTC_DATE(), INTERVAL ? DAY)
+       WHERE completion_date >= DATE_SUB(UTC_DATE(), INTERVAL ${lookbackDays} DAY)
        GROUP BY completion_date
-       ORDER BY completion_date ASC`,
-      [safeDays - 1]
+       ORDER BY completion_date ASC`
     )
   ]);
 

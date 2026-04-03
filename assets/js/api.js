@@ -69,9 +69,12 @@ async function apiRequest(path, options = {}) {
   const responseBody = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = responseBody.message || "Request failed.";
+    const message = responseBody.error
+      ? `${responseBody.message || "Request failed."} (${responseBody.error})`
+      : responseBody.message || "Request failed.";
     const error = new Error(message);
     error.status = response.status;
+    error.code = responseBody.code || null;
     error.details = responseBody.errors || [];
     throw error;
   }

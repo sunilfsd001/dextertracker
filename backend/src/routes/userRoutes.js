@@ -280,8 +280,8 @@ router.get(
          WHERE uc.user_id = ?
            AND uc.completion_date <= UTC_DATE()
          ORDER BY uc.completion_date DESC
-         LIMIT ?`,
-        [req.user.id, limit]
+         LIMIT ${Math.max(1, Math.min(365, Number.isInteger(limit) ? limit : 60))}`,
+        [req.user.id]
       );
 
       const history = rows.map((row) => ({
