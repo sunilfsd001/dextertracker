@@ -1,5 +1,6 @@
 -- Run this script against your target database (for Clever Cloud, your add-on DB).
--- It intentionally does not create or drop the database itself.
+
+USE bd4he6pdmp7vakpk0ais;
 
 CREATE TABLE users (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
