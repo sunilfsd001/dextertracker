@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const { env } = require("./config/env");
+const { query } = require("./config/db");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const authRoutes = require("./routes/authRoutes");
@@ -53,6 +54,26 @@ const authLimiter = rateLimit({
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
+});
+
+app.get("/health/db", async (req, res) => {
+  try {
+    const ping = await query("SELECT 1 AS ok");
+    const usersCount = await query("SELECT COUNT(*) AS total_users FROM users");
+    return res.status(200).json({
+      status: "ok",
+      db: {
+        connected: Number(ping[0]?.ok || 0) === 1,
+        database: env.db.name,
+        totalUsers: Number(usersCount[0]?.total_users || 0)
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message
+    });
+  }
 });
 
 app.use("/api/auth", authLimiter, authRoutes);
