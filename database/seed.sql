@@ -1,4 +1,4 @@
-USE coding_tracker;
+-- Run this script on the same database where schema.sql was applied.
 
 -- Default password for all seeded users: password
 SET @seed_password_hash = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';

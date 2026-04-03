@@ -1,6 +1,5 @@
-DROP DATABASE IF EXISTS coding_tracker;
-CREATE DATABASE coding_tracker CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE coding_tracker;
+-- Run this script against your target database (for Clever Cloud, your add-on DB).
+-- It intentionally does not create or drop the database itself.
 
 CREATE TABLE users (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
