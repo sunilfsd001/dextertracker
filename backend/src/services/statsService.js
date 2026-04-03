@@ -12,8 +12,7 @@ function clampInteger(value, fallback, min, max) {
 function normalizeDates(rows) {
   return rows
     .map((row) => toISODate(row.completion_date))
-    .filter(Boolean)
-    .sort((a, b) => b.localeCompare(a));
+    .filter(Boolean);
 }
 
 function buildStreakStatsFromDescendingDates(dates, today = toISODate(new Date())) {

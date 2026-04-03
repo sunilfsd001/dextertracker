@@ -418,13 +418,12 @@ router.get("/users", async (req, res, next) => {
     const limit = clampInteger(req.query.limit, 100, 1, 500);
     const offset = clampInteger(req.query.offset, 0, 0, 50000);
 
-    // Use sanitized literals for LIMIT/OFFSET for maximum server compatibility.
     const users = await query(
       `SELECT id, name, email, created_at
        FROM users
        WHERE role = 'user'
        ORDER BY created_at DESC
-       LIMIT ${limit} OFFSET ${offset}`
+       LIMIT ${offset}, ${limit}`
     );
 
     const statsByUser = await getUsersProgressStats(users.map((entry) => entry.id), {

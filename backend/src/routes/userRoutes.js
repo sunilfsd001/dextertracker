@@ -10,6 +10,14 @@ const router = express.Router();
 
 router.use(authenticate, authorize("user"));
 
+function clampInteger(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, parsed));
+}
+
 router.get("/profile", async (req, res, next) => {
   try {
     const users = await query(
@@ -49,15 +57,15 @@ router.get(
   validate,
   async (req, res, next) => {
     try {
-      const limit = Number(req.query.limit || 100);
-      const offset = Number(req.query.offset || 0);
+      const limit = clampInteger(req.query.limit, 100, 1, 200);
+      const offset = clampInteger(req.query.offset, 0, 0, 100000);
       const notes = await query(
         `SELECT id, title, content, created_at, updated_at
          FROM notes
          WHERE user_id = ?
          ORDER BY updated_at DESC
-         LIMIT ? OFFSET ?`,
-        [req.user.id, limit, offset]
+         LIMIT ${offset}, ${limit}`,
+        [req.user.id]
       );
 
       return res.status(200).json({ notes });
@@ -268,7 +276,7 @@ router.get(
   validate,
   async (req, res, next) => {
     try {
-      const limit = Number(req.query.limit || 60);
+      const limit = clampInteger(req.query.limit, 60, 1, 365);
       const rows = await query(
         `SELECT uc.completion_date,
                 p.title,
@@ -280,7 +288,7 @@ router.get(
          WHERE uc.user_id = ?
            AND uc.completion_date <= UTC_DATE()
          ORDER BY uc.completion_date DESC
-         LIMIT ${Math.max(1, Math.min(365, Number.isInteger(limit) ? limit : 60))}`,
+         LIMIT ${limit}`,
         [req.user.id]
       );
 

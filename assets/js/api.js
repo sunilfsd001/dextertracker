@@ -131,10 +131,6 @@ function formatPercent(value) {
   return `${Number(value || 0).toFixed(2)}%`;
 }
 
-function resetDemoData() {
-  clearSession();
-}
-
 export {
   apiRequest,
   setSession,
@@ -143,6 +139,5 @@ export {
   requireAuth,
   formatDate,
   formatDateTime,
-  formatPercent,
-  resetDemoData
+  formatPercent
 };
