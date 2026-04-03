@@ -49,6 +49,7 @@ const selectedUserDetails = document.getElementById("selectedUserDetails");
 let problemState = [];
 let dailyProblemState = [];
 let userState = [];
+let selectedUserId = "";
 
 function escapeHtml(value) {
   return String(value)
@@ -181,6 +182,10 @@ function renderUsers() {
     `
     )
     .join("");
+
+  usersList.querySelectorAll("button[data-user-id]").forEach((button) => {
+    button.classList.toggle("is-active", String(button.dataset.userId || "") === selectedUserId);
+  });
 }
 
 function renderTopPerformers(topPerformers = []) {
@@ -278,6 +283,14 @@ async function loadUsers() {
     const response = await apiRequest("/admin/users");
     userState = response.users || [];
     renderUsers();
+
+    if (selectedUserId && userState.some((entry) => String(entry.id) === selectedUserId)) {
+      await loadUserDetails(selectedUserId);
+    } else if (selectedUserId) {
+      selectedUserId = "";
+      selectedUserDetails.innerHTML = "Select a user to view notes and completion history.";
+      selectedUserDetails.className = "history-list muted";
+    }
   } catch (error) {
     if (!handleAuthError(error)) {
       usersList.innerHTML = `<div class="empty-state">Unable to load users.</div>`;
@@ -287,7 +300,12 @@ async function loadUsers() {
 
 async function loadUserDetails(userId) {
   try {
-    const response = await apiRequest(`/admin/users/${userId}`);
+    selectedUserId = String(userId);
+    renderUsers();
+    selectedUserDetails.innerHTML = `<div class="empty-state">Loading user details...</div>`;
+    selectedUserDetails.className = "history-list";
+
+    const response = await apiRequest(`/admin/users/${encodeURIComponent(selectedUserId)}`);
     const userData = response.user;
     const stats = response.stats || {};
     const notes = response.notes || [];
@@ -318,7 +336,7 @@ async function loadUserDetails(userId) {
     `;
   } catch (error) {
     if (!handleAuthError(error)) {
-      selectedUserDetails.innerHTML = `<div class="empty-state">Unable to load user details.</div>`;
+      selectedUserDetails.innerHTML = `<div class="empty-state">Unable to load user details. ${escapeHtml(error.message || "")}</div>`;
     }
   }
 }
@@ -528,7 +546,7 @@ usersList.addEventListener("click", (event) => {
     return;
   }
 
-  const userId = Number(button.dataset.userId);
+  const userId = String(button.dataset.userId || "");
   if (!userId) {
     return;
   }
