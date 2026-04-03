@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Dashboard | Dexter Tracker</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body class="dashboard-body">
+    <div class="grid-bg"></div>
+    <div class="dashboard-layout">
+      <aside class="sidebar glass">
+        <div>
+          <p class="eyebrow">USER NODE</p>
+          <h1 class="logo">Dexter</h1>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#todayCard">Today Problem</a>
+          <a href="#streakCard">Streak</a>
+          <a href="#notesCard">Notes</a>
+          <a href="#leaderboardCard">Leaderboard</a>
+        </nav>
+        <button id="logoutButton" class="outline-btn">Logout</button>
+      </aside>
+
+      <main class="dashboard-main">
+        <header class="topbar glass">
+          <div>
+            <p class="eyebrow">CODER DASHBOARD</p>
+            <h2 id="welcomeHeading">Welcome, Coder</h2>
+          </div>
+          <div class="pill" id="todayDatePill"></div>
+        </header>
+
+        <section class="cards-grid">
+          <article id="todayCard" class="card glass card-wide">
+            <div class="card-head">
+              <h3>Today&apos;s Coding Problem</h3>
+              <span id="problemDifficultyBadge" class="badge">-</span>
+            </div>
+            <h4 id="problemTitle">Loading...</h4>
+            <p id="problemDescription" class="muted">Please wait while we load today&apos;s challenge.</p>
+            <div class="meta-row">
+              <span id="problemTopic" class="chip">Topic</span>
+              <a id="problemReference" class="chip-link" href="#" target="_blank" rel="noreferrer noopener"
+                >Reference</a
+              >
+            </div>
+            <button id="finishProblemButton" class="neon-btn">Mark as Finished</button>
+            <p id="finishMessage" class="status-message"></p>
+          </article>
+
+          <article id="streakCard" class="card glass">
+            <h3>Streak</h3>
+            <div class="metric">
+              <span id="currentStreakValue">0</span>
+              <small>Current Streak</small>
+            </div>
+            <div class="metric-row">
+              <div>
+                <strong id="maxStreakValue">0</strong>
+                <p>Best Streak</p>
+              </div>
+              <div>
+                <strong id="totalCompletedValue">0</strong>
+                <p>Total Done</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card glass">
+            <h3>Progress Stats</h3>
+            <div class="metric-row">
+              <div>
+                <strong id="completionRateValue">0%</strong>
+                <p>Completion Rate</p>
+              </div>
+              <div>
+                <strong id="lastCompletedValue">-</strong>
+                <p>Last Completed</p>
+              </div>
+            </div>
+            <div id="miniHistoryBars" class="mini-bars"></div>
+          </article>
+
+          <article id="leaderboardCard" class="card glass">
+            <h3>Leaderboard</h3>
+            <div id="leaderboardList" class="list"></div>
+          </article>
+
+          <article id="notesCard" class="card glass card-wide">
+            <div class="card-head">
+              <h3>Personal Notes</h3>
+            </div>
+            <form id="noteForm" class="note-form">
+              <input type="hidden" id="noteId" />
+              <label>
+                Title
+                <input id="noteTitle" type="text" maxlength="120" required />
+              </label>
+              <label>
+                Content
+                <textarea id="noteContent" maxlength="5000" rows="4" required></textarea>
+              </label>
+              <div class="button-row">
+                <button class="neon-btn" type="submit">Save Note</button>
+                <button id="cancelEditNoteButton" class="outline-btn" type="button">Cancel Edit</button>
+              </div>
+            </form>
+            <p id="noteMessage" class="status-message"></p>
+            <div id="notesList" class="note-list"></div>
+          </article>
+
+          <article class="card glass card-wide">
+            <h3>Completion History</h3>
+            <div id="historyList" class="history-list"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/js/runtime-config.js"></script>
+    <script type="module" src="assets/js/user-dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Dexter Tracker</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body class="dashboard-body">
+    <div class="grid-bg"></div>
+    <div class="dashboard-layout">
+      <aside class="sidebar glass">
+        <div>
+          <p class="eyebrow">ADMIN CORE</p>
+          <h1 class="logo">Dexter</h1>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#overviewSection">Overview</a>
+          <a href="#dailySection">Daily Problem</a>
+          <a href="#problemBankSection">Problem Bank</a>
+          <a href="#usersSection">Users</a>
+          <a href="#analyticsSection">Analytics</a>
+        </nav>
+        <button id="adminLogoutButton" class="outline-btn">Logout</button>
+      </aside>
+
+      <main class="dashboard-main">
+        <header class="topbar glass">
+          <div>
+            <p class="eyebrow">CONTROL CENTER</p>
+            <h2 id="adminWelcome">Welcome, Admin</h2>
+          </div>
+          <div class="pill" id="adminDatePill"></div>
+        </header>
+
+        <section id="overviewSection" class="cards-grid">
+          <article class="card glass">
+            <h3>Total Users</h3>
+            <div class="metric">
+              <span id="metricTotalUsers">0</span>
+            </div>
+          </article>
+          <article class="card glass">
+            <h3>Today Completions</h3>
+            <div class="metric">
+              <span id="metricTodayCompletions">0</span>
+            </div>
+          </article>
+          <article class="card glass">
+            <h3>Today Completion Rate</h3>
+            <div class="metric">
+              <span id="metricTodayRate">0%</span>
+            </div>
+          </article>
+          <article class="card glass">
+            <h3>Total Completions</h3>
+            <div class="metric">
+              <span id="metricTotalCompletions">0</span>
+            </div>
+          </article>
+        </section>
+
+        <section id="dailySection" class="cards-grid">
+          <article class="card glass card-wide">
+            <h3>Set / Update Today&apos;s Problem</h3>
+            <form id="dailyProblemForm" class="note-form">
+              <label>
+                Date
+                <input id="dailyProblemDate" type="date" required />
+              </label>
+              <label>
+                Problem
+                <select id="dailyProblemSelect" required></select>
+              </label>
+              <div class="button-row">
+                <button class="neon-btn" type="submit">Save Daily Problem</button>
+                <button id="dailyResetButton" class="outline-btn" type="button">Reset</button>
+              </div>
+            </form>
+            <div id="dailyProblemMessage" class="status-message"></div>
+            <div id="dailyProblemsList" class="history-list"></div>
+          </article>
+        </section>
+
+        <section id="problemBankSection" class="cards-grid">
+          <article class="card glass card-wide">
+            <div class="card-head">
+              <h3>Problem Bank</h3>
+            </div>
+            <form id="problemForm" class="note-form">
+              <input type="hidden" id="problemId" />
+              <label>
+                Title
+                <input id="problemTitleInput" type="text" maxlength="180" required />
+              </label>
+              <label>
+                Description
+                <textarea id="problemDescriptionInput" rows="4" maxlength="6000" required></textarea>
+              </label>
+              <label>
+                Topic
+                <input id="problemTopicInput" type="text" maxlength="100" required />
+              </label>
+              <label>
+                Difficulty
+                <select id="problemDifficultyInput" required>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </label>
+              <label>
+                Reference URL
+                <input id="problemReferenceInput" type="url" maxlength="500" />
+              </label>
+              <div class="button-row">
+                <button class="neon-btn" type="submit">Save Problem</button>
+                <button id="problemCancelButton" class="outline-btn" type="button">Cancel Edit</button>
+              </div>
+            </form>
+            <div id="problemMessage" class="status-message"></div>
+            <div id="problemBankList" class="history-list"></div>
+          </article>
+        </section>
+
+        <section id="usersSection" class="cards-grid">
+          <article class="card glass">
+            <h3>Users</h3>
+            <div id="usersList" class="list"></div>
+          </article>
+
+          <article class="card glass card-wide">
+            <h3>User Details</h3>
+            <div id="selectedUserDetails" class="history-list muted">Select a user to view notes and completion history.</div>
+          </article>
+        </section>
+
+        <section id="analyticsSection" class="cards-grid">
+          <article class="card glass card-wide">
+            <h3>Daily Completion Rate (Last 14 Days)</h3>
+            <div id="completionRateChart" class="chart"></div>
+          </article>
+          <article class="card glass card-wide">
+            <h3>User Activity Trend (Last 30 Days)</h3>
+            <div id="activityChart" class="chart"></div>
+          </article>
+          <article class="card glass card-wide">
+            <h3>Top Performers</h3>
+            <div id="topPerformersList" class="list"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/js/runtime-config.js"></script>
+    <script type="module" src="assets/js/admin-dashboard.js"></script>
+  </body>
+</html>

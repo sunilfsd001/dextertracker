@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dexter Coding Tracker</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body class="auth-body">
+    <div class="grid-bg"></div>
+    <main class="auth-shell">
+      <section class="brand-panel glass">
+        <p class="eyebrow">CYBER CODING OPS</p>
+        <h1>Dexter Tracker</h1>
+        <p class="brand-copy">
+          Track daily coding wins, lock in your streak, and climb the leaderboard in a neon command center.
+        </p>
+        <ul class="feature-list">
+          <li>Secure API Authentication</li>
+          <li>Daily Problem Completion Streaks</li>
+          <li>Notes, History, Leaderboard, Analytics</li>
+        </ul>
+      </section>
+
+      <section class="auth-panel glass">
+        <div class="tabs">
+          <button id="loginTab" class="tab active" type="button">Login</button>
+          <button id="signupTab" class="tab" type="button">Signup</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active" autocomplete="off">
+          <h2>Welcome Back</h2>
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" required />
+          </label>
+          <button class="neon-btn" type="submit">Login</button>
+        </form>
+
+        <form id="signupForm" class="auth-form" autocomplete="off">
+          <h2>Create Account</h2>
+          <label>
+            Full Name
+            <input type="text" name="name" minlength="2" maxlength="80" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              name="password"
+              minlength="8"
+              placeholder="8+ chars, upper/lower/number"
+              required
+            />
+          </label>
+          <button class="neon-btn" type="submit">Signup</button>
+        </form>
+
+        <div id="authMessage" class="status-message" aria-live="polite"></div>
+
+        <!-- <p class="seed-tip">
+          Demo credentials:<br />
+          admin@tracker.dev / password
+        </p> -->
+      </section>
+    </main>
+
+    <script src="assets/js/runtime-config.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+  </body>
+</html>
