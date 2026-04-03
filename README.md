@@ -40,10 +40,6 @@ SOURCE /absolute/path/to/dexter/database/schema.sql;
 SOURCE /absolute/path/to/dexter/database/seed.sql;
 ```
 
-Seed logins:
-- Admin: `admin@tracker.dev` / `password`
-- Users: `ava@tracker.dev`, `liam@tracker.dev`, `mia@tracker.dev`, `noah@tracker.dev` / `password`
-
 ## 2) Configure Backend
 ```bash
 cd backend
